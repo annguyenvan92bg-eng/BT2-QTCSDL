@@ -177,7 +177,7 @@ Thực thi các câu lệnh CREATE TABLE để tạo đồng thời 3 bảng: [S
 - Dễ dàng nâng cấp và bảo trì khi quy tắc kinh doanh thay đổi
 ## Thêm dữ liệu mẫu để kết quả fn được rõ ràng hơn
 - Code SQL
-- 
+
 INSERT INTO [Sach] ([MaSach], [TenSach], [TacGia], [NhaXuatBan], [NamXuatBan], [SoLuongTon], [DonGia], [TheLoai])
 VALUES 
     ('S001', N'Đắc Nhân Tâm', N'Dale Carnegie', N'NXB Tổng hợp', 2020, 10, 120000, N'Kỹ năng'),
@@ -185,6 +185,7 @@ VALUES
     ('S003', N'Clean Code', N'Robert Martin', N'NXB Khoa học', 2021, 3, 250000, N'Tin học'),
     ('S004', N'SQL Cơ bản', N'John Doe', N'NXB Giáo dục', 2022, 7, 180000, N'Tin học'),
     ('S005', N'Tư Duy Nhanh', N'Daniel Kahneman', N'NXB Thế giới', 2019, 4, 150000, N'Tâm lý');
+  
 
     INSERT INTO [DocGia] ([MaDocGia], [HoTen], [NgaySinh], [GioiTinh], [DiaChi], [SoDienThoai])
 VALUES 
@@ -192,14 +193,17 @@ VALUES
     ('DG002', N'Trần Thị B', '2001-08-20', N'Nữ', N'Hải Phòng', '0901234568'),
     ('DG003', N'Lê Văn C', '1999-12-10', N'Nam', N'Đà Nẵng', '0901234569');
 
+
     INSERT INTO [PhieuMuon] ([MaPhieuMuon], [MaDocGia], [MaSach], [NgayMuon], [SoLuongMuon], [TinhTrang])
 VALUES 
     ('PM001', 'DG001', 'S001', '2026-04-20', 1, N'Đang mượn'),
     ('PM002', 'DG002', 'S002', '2026-04-25', 2, N'Đang mượn'),
     ('PM003', 'DG001', 'S003', '2026-04-22', 1, N'Đã trả');
+  
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/197f0077-b474-4749-9deb-869173a785c4" />
   Ảnh này là kết quả thêm thành công dữ liệu mẫu
-### 1.Scalar Function
+  
+### 1. Scalar Function
 - Mục đích: Tính tổng số sách đang được mượn
 - Code SQL
 
@@ -218,4 +222,70 @@ END;
 GO
 SELECT [dbo].[fn_TongSachDangMuon]() AS [TongSachDangMuon];
 
-<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/49af78a4-03ab-40e3-9e98-ba280cfa612c" />
+<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/5040c84b-6223-462b-8118-114c2716d868" />
+ *Ảnh này tạo hàm fn_TongSachDangMuon và thực thi để đếm tổng số phiếu mượn đang ở trạng thái "Đang mượn".
+ Cho biết có bao nhiêu cuốn sách đang được độc giả mượn mà chưa trả
+ 
+ Kết quả hiển thị một con số
+ 
+### 2. Table-Valued Function
+- Mục đích: Lấy danh sách sách còn tồn kho
+- Code SQL
+CREATE OR ALTER FUNCTION [dbo].[fn_SachConTon] ()
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT [MaSach], [TenSach], [TacGia], [SoLuongTon], [DonGia]
+    FROM [Sach]
+    WHERE [SoLuongTon] > 0
+);
+GO
+
+SELECT * FROM [dbo].[fn_SachConTon]();
+
+  <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/9f28a68e-10c3-4972-bf6f-321af5495095" />
+* Ảnh này tạo hàm fn_SachConTon và thực thi để liệt kê tất cả sách còn số lượng tồn > 0.
+
+ Lọc ra những đầu sách thư viện còn có thể cho mượn, loại bỏ sách đã hết.
+Hiển thị danh sách sách với cột SoLuongTon > 0. Những sách nào tồn kho = 0 sẽ không xuất hiện trong kết quả.
+
+### 3. Multi-statement Table-Valued Function
+- Mục đích: Thống kê độc giả có số lần mượn sách
+- Code SQl
+
+CREATE OR ALTER FUNCTION [dbo].[fn_ThongKeSachTheoTheLoai] ()
+RETURNS @BangThongKe TABLE
+(
+    [TheLoai] NVARCHAR(50),
+    [SoLuongSach] INT,
+    [TongSoLuongTon] INT
+)
+AS
+BEGIN
+    INSERT INTO @BangThongKe
+    SELECT 
+        [TheLoai],
+        COUNT(*) AS [SoLuongSach],
+        SUM([SoLuongTon]) AS [TongSoLuongTon]
+    FROM [Sach]
+    WHERE [TheLoai] IS NOT NULL
+    GROUP BY [TheLoai];
+    
+    INSERT INTO @BangThongKe
+    VALUES (N'TỔNG CỘNG', 
+            (SELECT COUNT(*) FROM [Sach]),
+            (SELECT SUM([SoLuongTon]) FROM [Sach]));
+    
+    RETURN;
+END;
+GO
+
+SELECT * FROM [dbo].[fn_ThongKeSachTheoTheLoai]();
+
+<img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/5e8c3b63-e18b-4a0e-ad87-56a529a5dfb1" />
+*Ảnh này tạo hàm fn_ThongKeSachTheoTheLoai và thực thi để tổng hợp số lượng sách theo từng thể loại.
+
+ Giúp quản lý thư viện nắm được cơ cấu đầu sách: thể loại nào nhiều sách nhất, thể loại nào có tổng số lượng tồn nhiều nhất.
+ Hiển thị bảng có 3 cột: Thể loại, Số lượng đầu sách, Tổng số lượng tồn. Dòng cuối là TỔNG CỘNG - đây là điểm khác biệt của MSTVF so với ITVF vì đã xử lý thêm logic bên trong.
+
