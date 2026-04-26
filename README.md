@@ -289,3 +289,13 @@ SELECT * FROM [dbo].[fn_ThongKeSachTheoTheLoai]();
  Giúp quản lý thư viện nắm được cơ cấu đầu sách: thể loại nào nhiều sách nhất, thể loại nào có tổng số lượng tồn nhiều nhất.
  Hiển thị bảng có 3 cột: Thể loại, Số lượng đầu sách, Tổng số lượng tồn. Dòng cuối là TỔNG CỘNG - đây là điểm khác biệt của MSTVF so với ITVF vì đã xử lý thêm logic bên trong.
 
+## Phần 3 :  Xây dựng Store Procedure
+#### Một vài system sp trong SQL Server
+- sp_help :	     Hiển thị thông tin chi tiết của bảng (cột, ràng buộc, khóa)
+- sp_columns :	 Chỉ hiển thị thông tin các cột của bảng	
+- sp_rename	 :    Đổi tên bảng, cột hoặc ràng buộc	
+- sp_who	 :   Xem ai đang kết nối đến SQL Server
+- sp_helpdb	 :    Xem thông tin database (kích thước, ngày tạo)	
+- sp_tables	 :    Liệt kê tất cả bảng trong database
+
+### 1. Store Procedure đơn giản để thực hiện lệnh INSERT hoặc UPDATE dữ liệu, có kiểm tra điều kiện logic
