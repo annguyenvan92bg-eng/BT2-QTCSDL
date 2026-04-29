@@ -434,7 +434,7 @@ Tự động giảm số lượng tồn kho sách khi có phiếu mượn mới 
 Sau khi INSERT phiếu mượn PM005 (mượn 2 cuốn S001), tồn kho sách S001 giảm từ 10 xuống 8. Trigger hoạt động đúng.
 ### 2. Trigger cho Bảng A : Khi insert thì cập nhật dữ liệu vào bảng B; sau đó viết trigger cho bảng B để khi B được cập nhật thì cập nhật sang bảng A 
 *Vẫn tiếp tục dựa theo trigger của ý 1 ta làm tiếp
-Bước 1: Tạo Trigger cho bảng A (PhieuMuon) → cập nhật bảng B (Sach)
+- Bước 1: Tạo Trigger cho bảng A (PhieuMuon) → cập nhật bảng B (Sach)
 -- TRIGGER CHO BẢNG A (PhieuMuon)
 
 -- KHI INSERT PHIẾU MƯỢN → CẬP NHẬT TỒN KHO SÁCH
@@ -457,7 +457,7 @@ END;
 
   Khi có phiếu mượn mới được thêm vào bảng A (PhieuMuon), trigger này tự động cập nhật bảng B (Sach) bằng cách giảm số lượng tồn kho của sách tương ứng.
   Trigger được tạo thành công. Logic trong trigger: Lấy dữ liệu từ bảng inserted (chứa các dòng vừa thêm), JOIN với bảng Sach, sau đó UPDATE cột SoLuongTon = SoLuongTon - số lượng mượn. Trigger này chỉ hoạt động khi thực hiện lệnh INSERT vào bảng PhieuMuon.
-Bước 2: Tạo Trigger cho bảng B (Sach) → cập nhật lại bảng A (PhieuMuon)
+- Bước 2: Tạo Trigger cho bảng B (Sach) → cập nhật lại bảng A (PhieuMuon)
 -- TRIGGER CHO BẢNG B (Sach)
 -- KHI TỒN KHO SÁCH GIẢM NHIỀU → TỰ ĐỘNG GIA HẠN PHIẾU MƯỢN
 -- Logic: Nếu sách bị giảm tồn kho > 5 cuốn trong 1 lần, các phiếu đang mượn sách đó được gia hạn thêm 3 ngày
@@ -484,7 +484,7 @@ END;
   Khi số lượng tồn kho sách giảm, trigger này kiểm tra nếu mức giảm từ 5 cuốn trở lên trong một lần UPDATE, thì tự động gia hạn thêm 3 ngày cho các phiếu mượn đang mượn sách đó.
   Trigger được tạo thành công. Logic trong trigger: JOIN giữa bảng inserted (giá trị mới), deleted (giá trị cũ) và bảng PhieuMuon. Nếu chênh lệch tồn kho (cũ - mới) >= 5 và phiếu đang trong trạng thái "Đang mượn", thì cập nhật NgayTra tăng thêm 3 ngày. Trigger này chỉ hoạt động khi thực hiện lệnh UPDATE trên bảng Sach.
   
-Bước 3: Thử nghiệm vòng tròn
+- Bước 3: Thử nghiệm vòng tròn
 -- THỬ NGHIỆM: UPDATE BẢNG A SẼ TẠO VÒNG TRÒN VỚI BẢNG B
 
 -- 1. INSERT vào bảng A (PhieuMuon) → kích hoạt Trigger A
@@ -533,7 +533,8 @@ VALUES ('PM009', 'DG001', 'S001', GETDATE(), 6, N'Đang mượn');
 ## Phần 5 : Cursor và Duyệt dữ liệu
 ### 1. CURSOR để duyệt qua danh sách của 1 câu lệnh SQL dạng SELECT, duyệt qua từng bản ghi, xử lý riêng từng bản ghi 
 BÀI TOÁN ĐẶT RA
-Logic tự 
+
+Logic  
 Thư viện muốn tặng quà Tết cho các độc giả thân thiết. Quy tắc:
 
 Tặng 100.000đ nếu độc giả mượn >= 5 lần
@@ -557,7 +558,13 @@ CREATE TABLE [LogTangQua] (
 );
 ```
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/a8c7ff77-a698-4fdf-b7e5-709cdeae03a4" />
+*Ảnh này thực thi câu lệnh CREATE TABLE để tạo bảng [LogTangQua] dùng để lưu kết quả tặng quà cho độc giả.
+
+Tạo một bảng log riêng để ghi nhận việc xử lý tặng quà . Bảng này gồm các cột: Id (tự động tăng), MaDocGia, HoTen, SoLanMuon, QuaTang, NgayTang. Điều này giúp dễ dàng so sánh kết quả giữa 2 cách sau khi chạy.
+ Bảng [LogTangQua] được tạo thành công, hiển thị trong Object Explorer dưới mục Tables. Cấu trúc bảng bao gồm 6 cột với đầy đủ kiểu dữ liệu: INT IDENTITY cho Id, VARCHAR(10) cho MaDocGia, NVARCHAR(100) cho HoTen, INT cho SoLanMuon, NVARCHAR(100) cho QuaTang, và DATETIME mặc định GETDATE() cho NgayTang.
+
 - Bước 2: Giải quyết bằng CURSOR
+
 ```sql
 -- Duyệt từng độc giả, tính số lần mượn, xử lý riêng từng người
 DECLARE @MaDocGia VARCHAR(10);
@@ -613,7 +620,13 @@ DEALLOCATE cursor_tangqua;
 SELECT * FROM [LogTangQua];
 ```
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/6e4a4b1e-1962-43a1-82d1-ab3408d952fe" />
+*Ảnh này chạy script CURSOR để duyệt từng độc giả, tính số lần mượn và xác định quà tặng.
+
+ Duyệt qua từng bản ghi trong danh sách độc giả, xử lý riêng từng người để tính quà dựa trên số lần mượn.
+ Mỗi độc giả được xử lý riêng, thông báo in ra lần lượt từng người, kết quả được lưu vào bảng LogTangQua. 
+ Ví dụ: DG001 mượn 2 lần được tặng 20.000đ, DG002 mượn 1 lần được 20.000đ, DG003 chưa mượn không có quà.
 - Bước 3: Giải quyết KHÔNG dùng CURSOR (dùng INSERT SELECT)
+
 ```sql
 -- Xử lý đồng loạt tất cả độc giả cùng lúc
 -- Xóa dữ liệu cũ
@@ -639,7 +652,13 @@ GROUP BY d.[MaDocGia], d.[HoTen];
 SELECT * FROM [LogTangQua];
 ```
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/06916bba-8db3-47eb-9af4-b0dc01a0f646" />
+ *Ảnh này thực thi câu lệnh INSERT SELECT kết hợp với CASE WHEN để xử lý tặng quà cho tất cả độc giả cùng lúc, không dùng CURSOR.
+ 
+  Xử lý bài toán tặng quà Tết cho độc giả dựa trên số lần mượn sách, nhưng thay vì dùng CURSOR duyệt từng dòng, phương pháp này xử lý đồng loạt chỉ với 1 câu lệnh duy nhất. Logic vẫn giống CURSOR: mượn >=5 tặng 100.000đ, từ 3-4 tặng 50.000đ, từ 1-2 tặng 20.000đ, còn lại không có quà.
+ Kết quả lưu vào bảng `LogTangQua`
+ 
 - Bước 4: So sánh thời gian xử lý
+
 ```sql
 -- CÁCH 1: DÙNG CURSOR
 PRINT 'CÁCH 1: DÙNG CURSOR';
@@ -689,10 +708,20 @@ IF DATEDIFF(MILLISECOND, @StartTime1, @EndTime1) > DATEDIFF(MILLISECOND, @StartT
     PRINT 'Không dùng CURSOR nhanh hơn CURSOR';
 ELSE
     PRINT 'CURSOR nhanh hơn hoặc bằng không dùng CURSOR';
+
 ```
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/8e6e1108-35a8-4ec9-a47d-6ec098f51b5d" />
+*Ảnh này so sánh thời gian thực thi giữa cách dùng CURSOR và cách dùng INSERT SELECT (không CURSOR).
+
+ Đo và in ra thời gian chạy (ms) của cả 2 cách để tìm ra cách nào nhanh hơn.
+Kết quả cho thấy
+  - Cách dùng CURSOR: thường chậm hơn vì phải duyệt từng dòng, mỗi dòng thực hiện INSERT riêng lẻ.
+  - Cách dùng INSERT SELECT: nhanh hơn vì xử lý đồng loạt tất cả dữ liệu trong 1 câu lệnh.
+  - **Kết luận:** Không dùng CURSOR nhanh hơn (với dữ liệu càng lớn, chênh lệch càng rõ).
+
 ### 2. Bài toán khác, mà chỉ CURSOR mới giải quyết được, còn SQL rất khó giải quyết được
 BÀI TOÁN : Gửi thông báo riêng cho từng độc giả với nội dung cá nhân hóa --> Mỗi độc giả nhận 1 thông báo khác nhau dựa trên lịch sử mượn sách của họ
+
 ```sql
 DECLARE @Ma VARCHAR(10), @Ten NVARCHAR(100), @SoLanMuon INT, @ThongBao NVARCHAR(500);
 
@@ -727,3 +756,12 @@ CLOSE cur_thongbao;
 DEALLOCATE cur_thongbao;
 ```
 <img width="2560" height="1600" alt="image" src="https://github.com/user-attachments/assets/dd282be6-b499-45c2-ab04-9429ac45e163" />
+*Ảnh này thực hiện bài toán gửi thông báo cá nhân hóa cho từng độc giả bằng CURSOR.
+
+ Mỗi độc giả nhận một thông báo khác nhau với nội dung được ghép động dựa trên số lần mượn và tên của họ.
+- Kết quả cho thấy 
+  - CURSOR dễ dàng xử lý bài toán này vì có thể xây dựng nội dung thông báo riêng cho từng dòng.
+  - SQL thuần túy rất khó vì:
+    1. Phải tạo ra chuỗi thông báo khác nhau cho từng độc giả
+    2. Không có câu lệnh nào cho phép "xử lý riêng" từng dòng một cách linh hoạt
+    3. Phải dùng các hàm phức tạp như STRING_AGG, CASE lồng nhau rất khó đọc và bảo trì
